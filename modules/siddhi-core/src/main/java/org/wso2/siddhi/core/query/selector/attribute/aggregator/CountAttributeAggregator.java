@@ -44,22 +44,22 @@ public class CountAttributeAggregator extends AttributeAggregator {
     private String kvStoreType;
     private String key;
 
-    private static final CopyOnWriteArrayList<Long> operationDurations = new CopyOnWriteArrayList<>();
-    private static final ScheduledExecutorService avgLogger = Executors.newSingleThreadScheduledExecutor();
-
-    static {
-        avgLogger.scheduleAtFixedRate(() -> {
-            if (!operationDurations.isEmpty()) {
-                long sum = 0;
-                for (Long duration : operationDurations) {
-                    sum += duration;
-                }
-                double avg = sum / (double) operationDurations.size();
-                log.info("Average Redis increment/decrement operation duration in the last minute: {} ms ({} samples)", avg, operationDurations.size());
-                operationDurations.clear();
-            }
-        }, 1, 1, TimeUnit.MINUTES);
-    }
+//    private static final CopyOnWriteArrayList<Long> operationDurations = new CopyOnWriteArrayList<>();
+//    private static final ScheduledExecutorService avgLogger = Executors.newSingleThreadScheduledExecutor();
+//
+//    static {
+//        avgLogger.scheduleAtFixedRate(() -> {
+//            if (!operationDurations.isEmpty()) {
+//                long sum = 0;
+//                for (Long duration : operationDurations) {
+//                    sum += duration;
+//                }
+//                double avg = sum / (double) operationDurations.size();
+//                log.info("Average Redis increment/decrement operation duration in the last minute: {} ms ({} samples)", avg, operationDurations.size());
+//                operationDurations.clear();
+//            }
+//        }, 1, 1, TimeUnit.MINUTES);
+//    }
 
     /**
      * The initialization method for FunctionExecutor
@@ -103,7 +103,11 @@ public class CountAttributeAggregator extends AttributeAggregator {
 
     @Override
     public Object processAdd(Object data) {
-        long start = System.currentTimeMillis();
+        long threadId = Thread.currentThread().getId();
+        String threadName = Thread.currentThread().getName();
+
+        log.info("processAdd START - Key: {}, Thread: {} ({}), Instance: {}, time: {}",
+                key, threadId, threadName, System.identityHashCode(this),System.currentTimeMillis());
         try {
             if (kvStoreClient != null) {
                 try {
@@ -126,8 +130,10 @@ public class CountAttributeAggregator extends AttributeAggregator {
             return value;
         }
         finally {
-            long duration = System.currentTimeMillis() - start;
-            operationDurations.add(duration);
+//            long duration = System.currentTimeMillis() - start;
+//            operationDurations.add(duration);
+            log.info("processAdd END - Key: {}, Thread: {} ({}), Instance: {}, time: {}",
+                    key, threadId, threadName, System.identityHashCode(this), System.currentTimeMillis());
         }
 
     }
@@ -139,7 +145,11 @@ public class CountAttributeAggregator extends AttributeAggregator {
 
     @Override
     public Object processRemove(Object data) {
-        long start = System.currentTimeMillis();
+        long threadId = Thread.currentThread().getId();
+        String threadName = Thread.currentThread().getName();
+
+        log.info("processRemove START - Key: {}, Thread: {} ({}), Instance: {}, time: {}",
+                key, threadId, threadName, System.identityHashCode(this),System.currentTimeMillis());
         try {
             if (kvStoreClient != null) {
                 try {
@@ -162,8 +172,10 @@ public class CountAttributeAggregator extends AttributeAggregator {
             return value;
         }
         finally {
-            long duration = System.currentTimeMillis() - start;
-            operationDurations.add(duration);
+//            long duration = System.currentTimeMillis() - start;
+//            operationDurations.add(duration);
+            log.info("processRemove END - Key: {}, Thread: {} ({}), Instance: {}, time: {}",
+                    key, threadId, threadName, System.identityHashCode(this), System.currentTimeMillis());
         }
     }
 
