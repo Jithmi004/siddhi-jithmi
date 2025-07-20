@@ -85,7 +85,7 @@ public class GroupByAggregationAttributeExecutor extends AbstractAggregationAttr
     }
 
     @Override
-    public synchronized Object execute(ComplexEvent event) {
+    public Object execute(ComplexEvent event) {
         if (event.getType() == ComplexEvent.Type.RESET) {
             Object aOutput = null;
             for (AttributeAggregator attributeAggregator : aggregatorMap.values()) {
@@ -105,20 +105,22 @@ public class GroupByAggregationAttributeExecutor extends AbstractAggregationAttr
         }
 
         String key = QuerySelector.getThreadLocalGroupByKey();
-        AttributeAggregator currentAttributeAggregator = aggregatorMap.get(key);
-        if (currentAttributeAggregator == null) {
-            if (expiredAggregatorTracker != null) {
-                currentAttributeAggregator = expiredAggregatorTracker.remove(key);
-            }
-
+        synchronized (key) {
+            AttributeAggregator currentAttributeAggregator = aggregatorMap.get(key);
             if (currentAttributeAggregator == null) {
-                currentAttributeAggregator = attributeAggregator.cloneAggregator(key);
-                currentAttributeAggregator.initAggregator(attributeExpressionExecutors, executionPlanContext);
+                if (expiredAggregatorTracker != null) {
+                    currentAttributeAggregator = expiredAggregatorTracker.remove(key);
+                }
+
+                if (currentAttributeAggregator == null) {
+                    currentAttributeAggregator = attributeAggregator.cloneAggregator(key);
+                    currentAttributeAggregator.initAggregator(attributeExpressionExecutors, executionPlanContext);
+                }
+                currentAttributeAggregator.start();
+                aggregatorMap.put(key, currentAttributeAggregator);
             }
-            currentAttributeAggregator.start();
-            aggregatorMap.put(key, currentAttributeAggregator);
+            return currentAttributeAggregator.process(event);
         }
-        return currentAttributeAggregator.process(event);
     }
 
     public ExpressionExecutor cloneExecutor(String key) {

@@ -19,7 +19,10 @@ package org.wso2.siddhi.core.query.selector.attribute.aggregator;
 
 import org.wso2.siddhi.core.config.ExecutionPlanContext;
 import org.wso2.siddhi.core.executor.ExpressionExecutor;
+import org.wso2.siddhi.core.query.selector.QuerySelector;
 import org.wso2.siddhi.query.api.definition.Attribute;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.AbstractMap;
 import java.util.Map;
@@ -28,6 +31,8 @@ public class CountAttributeAggregator extends AttributeAggregator {
 
     private static Attribute.Type type = Attribute.Type.LONG;
     private long value = 0l;
+    private static final Logger log = LoggerFactory.getLogger(CountAttributeAggregator.class);
+    private String key;
 
     /**
      * The initialization method for FunctionExecutor
@@ -37,7 +42,7 @@ public class CountAttributeAggregator extends AttributeAggregator {
      */
     @Override
     protected void init(ExpressionExecutor[] attributeExpressionExecutors, ExecutionPlanContext executionPlanContext) {
-
+        this.key = QuerySelector.getThreadLocalGroupByKey();
     }
 
     public Attribute.Type getReturnType() {
@@ -46,7 +51,21 @@ public class CountAttributeAggregator extends AttributeAggregator {
 
     @Override
     public Object processAdd(Object data) {
-        value++;
+        long threadId = Thread.currentThread().getId();
+        String threadName = Thread.currentThread().getName();
+
+        log.info("pcAdd START - Key: {}, Thread: {} ({}), Instance: {}, time: {}",
+                key, threadId, threadName, System.identityHashCode(this),System.currentTimeMillis());
+        try {
+            Thread.sleep(1000); // Wait for 1 second
+            value++;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // Restore the interrupted status
+            throw new RuntimeException("Thread interrupted during sleep", e);
+        } finally {
+            log.info("pcAdd END - Key: {}, Thread: {} ({}), Instance: {}, time: {}",
+                    key, threadId, threadName, System.identityHashCode(this), System.currentTimeMillis());
+        }
         return value;
     }
 
@@ -58,7 +77,21 @@ public class CountAttributeAggregator extends AttributeAggregator {
 
     @Override
     public Object processRemove(Object data) {
-        value--;
+        long threadId = Thread.currentThread().getId();
+        String threadName = Thread.currentThread().getName();
+
+        log.info("pcRemove START - Key: {}, Thread: {} ({}), Instance: {}, time: {}",
+                key, threadId, threadName, System.identityHashCode(this),System.currentTimeMillis());
+        try {
+            Thread.sleep(1000); // Wait for 1 second
+            value--;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // Restore the interrupted status
+            throw new RuntimeException("Thread interrupted during sleep", e);
+        } finally {
+            log.info("pcRemove END - Key: {}, Thread: {} ({}), Instance: {}, time: {}",
+                    key, threadId, threadName, System.identityHashCode(this), System.currentTimeMillis());
+        }
         return value;
     }
 

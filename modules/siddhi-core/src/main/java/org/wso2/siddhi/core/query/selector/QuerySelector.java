@@ -209,7 +209,7 @@ public class QuerySelector implements Processor {
         Map<String, ComplexEvent> groupedEvents = new LinkedHashMap<String, ComplexEvent>();
         complexEventChunk.reset();
 
-        synchronized (this) {
+//        synchronized (this) {
             while (complexEventChunk.hasNext()) {
                 ComplexEvent event = complexEventChunk.next();
                 switch (event.getType()) {
@@ -218,20 +218,22 @@ public class QuerySelector implements Processor {
                     case EXPIRED:
                         eventPopulator.populateStateEvent(event);
                         String groupByKey = groupByKeyGenerator.constructEventKey(event);
-                        keyThreadLocal.set(groupByKey);
+                        synchronized (groupByKey) {
+                            keyThreadLocal.set(groupByKey);
 
-                        for (AttributeProcessor attributeProcessor : attributeProcessorList) {
-                            attributeProcessor.process(event);
-                        }
-
-                        if (!(havingConditionExecutor != null && !havingConditionExecutor.execute(event))) {
-                            if ((event.getType() == StreamEvent.Type.CURRENT && currentOn) || (event.getType() == StreamEvent.Type.EXPIRED && expiredOn)) {
-                                complexEventChunk.remove();
-                                groupedEvents.put(groupByKey, event);
+                            for (AttributeProcessor attributeProcessor : attributeProcessorList) {
+                                attributeProcessor.process(event);
                             }
+
+                            if (!(havingConditionExecutor != null && !havingConditionExecutor.execute(event))) {
+                                if ((event.getType() == StreamEvent.Type.CURRENT && currentOn) || (event.getType() == StreamEvent.Type.EXPIRED && expiredOn)) {
+                                    complexEventChunk.remove();
+                                    groupedEvents.put(groupByKey, event);
+                                }
+                            }
+                            keyThreadLocal.remove();
+                            break;
                         }
-                        keyThreadLocal.remove();
-                        break;
                     case TIMER:
                         break;
                     case RESET:
@@ -241,7 +243,7 @@ public class QuerySelector implements Processor {
                         break;
                 }
             }
-        }
+//        }
 
         if (groupedEvents.size() != 0) {
             complexEventChunk.clear();
