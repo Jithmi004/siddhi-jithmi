@@ -48,7 +48,7 @@ public interface KeyValueStoreClient {
      * @param key The key whose numeric value is to be incremented.
      * @return The value of the key after the increment operation.
      */
-    long increment(String key);
+    long incrementBy(String key, long increment);
 
     /**
      * Decrements the numeric value of a key by one.
@@ -57,7 +57,7 @@ public interface KeyValueStoreClient {
      * @param key The key whose numeric value is to be decremented.
      * @return The value of the key after the decrement operation.
      */
-    long decrement(String key);
+    long decrementBy(String key, long decrement);
 
     /**
      * Deletes the mapping for a key from this store if it is present.

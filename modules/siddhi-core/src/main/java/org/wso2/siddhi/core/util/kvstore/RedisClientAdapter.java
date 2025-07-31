@@ -121,7 +121,7 @@ public class RedisClientAdapter implements KeyValueStoreClient {
     }
 
     @Override
-    public long increment(String key) {
+    public long incrementBy(String key, long increment) {
         if (key == null) {
             log.error("INCREMENT operation called with null key. Operation aborted.");
             throw new KeyValueStoreException("Key cannot be null for INCREMENT operation.");
@@ -133,7 +133,7 @@ public class RedisClientAdapter implements KeyValueStoreClient {
                 log.error("Cannot perform INCREMENT for key '{}': Jedis instance is null (pool unavailable or uninitialized).", key);
                 throw new KeyValueStoreException("Failed to get connection from Redis pool for INCREMENT operation.");
             }
-            return jedis.incr(key);
+            return jedis.incrBy(key, increment);
         } catch (JedisException e) {
             log.error("JedisException during INCREMENT for key '{}'.", key, e);
             throw new KeyValueStoreException("Error during Redis INCREMENT for key: " + key, e);
@@ -145,7 +145,7 @@ public class RedisClientAdapter implements KeyValueStoreClient {
     }
 
     @Override
-    public long decrement(String key) {
+    public long decrementBy(String key, long decrement) {
         if (key == null) {
             log.error("DECREMENT operation called with null key. Operation aborted.");
             throw new KeyValueStoreException("Key cannot be null for DECREMENT operation.");
@@ -157,7 +157,7 @@ public class RedisClientAdapter implements KeyValueStoreClient {
                 log.error("Cannot perform DECREMENT for key '{}': Jedis instance is null (pool unavailable or uninitialized).", key);
                 throw new KeyValueStoreException("Failed to get connection from Redis pool for DECREMENT operation.");
             }
-            return jedis.decr(key);
+            return jedis.decrBy(key, decrement);
         } catch (JedisException e) {
             log.error("JedisException during DECREMENT for key '{}'.", key, e);
             throw new KeyValueStoreException("Error during Redis DECREMENT for key: " + key, e);

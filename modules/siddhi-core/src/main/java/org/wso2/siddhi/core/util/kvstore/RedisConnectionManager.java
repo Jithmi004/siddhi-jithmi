@@ -16,8 +16,8 @@ public class RedisConnectionManager {
     private static final Logger log = LoggerFactory.getLogger(RedisConnectionManager.class);
 
     private static volatile JedisPool jedisPool;
-
-    private static final String DEFAULT_REDIS_HOST = "add-redis-host-here";
+    
+    private static final String DEFAULT_REDIS_HOST = "localhost";
     private static final int DEFAULT_REDIS_PORT = 6379;
 
     // Pool monitoring scheduler
@@ -34,15 +34,9 @@ public class RedisConnectionManager {
     }
 
     // Default JedisPool configurations
-    private static final int DEFAULT_MAX_TOTAL_CONNECTIONS = 1000;
-    private static final int DEFAULT_MAX_IDLE_CONNECTIONS = 1000;
-    private static final int DEFAULT_MIN_IDLE_CONNECTIONS = 100;
-//    private static final boolean DEFAULT_TEST_ON_BORROW = true;
-//    private static final boolean DEFAULT_TEST_ON_RETURN = true;
-//    private static final boolean DEFAULT_TEST_WHILE_IDLE = true;
-//    private static final long DEFAULT_MIN_EVICTABLE_IDLE_TIME_MILLIS = 60000L; // 1 minute
-//    private static final long DEFAULT_TIME_BETWEEN_EVICTION_RUNS_MILLIS = 30000L; // 30 seconds
-//    private static final int DEFAULT_NUM_TESTS_PER_EVICTION_RUN = 3;
+    private static final int DEFAULT_MAX_TOTAL_CONNECTIONS = 3000;
+    private static final int DEFAULT_MAX_IDLE_CONNECTIONS = 3000;
+    private static final int DEFAULT_MIN_IDLE_CONNECTIONS = 300;
     private static final boolean DEFAULT_BLOCK_WHEN_EXHAUSTED = true;
 
 
